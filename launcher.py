@@ -1,42 +1,84 @@
 # Minecraft legacy console edition launcher by hw2007
 
 from tkinter import *
+from tkinter import ttk
 import os
 import requests
 import zipfile
-import time
 import subprocess
+from threading import Thread
 
+window = Tk()
 
-def download_game():
-    url = "https://github.com/smartcmd/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip"
-    
+progress = DoubleVar()
+progress_str = StringVar()
+
+def perform_download(url, stop_flag, progressbar):
     working_dir = os.path.dirname(os.path.abspath(__file__))
     zip_path = os.path.join(working_dir, "LCEWindows64.zip")
     
     print("Download started...")
-    response = requests.get(url)
-    response.raise_for_status() # raise error if download fails
+        
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status() # Raise error if download fails
+        total_size = int(r.headers.get("Content-Length", 0))
+        chunk_size = 1024 # 1KB chunks
+        num_chunks = total_size // chunk_size + 1
+
+        extract_path = os.path.join(working_dir, "LegacyLauncher/Minecraft_LCE")
+        os.makedirs(extract_path, exist_ok=True)
+
+        with open(zip_path, "wb") as f:
+            for i, chunk in enumerate(r.iter_content(chunk_size=chunk_size)):
+                if stop_flag["stop"]:
+                    print("Download cancelled")
+                    break
+                if chunk:
+                    f.write(chunk)
+                    progress.set((i+1) / num_chunks * 100)
+                    progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
+    if not stop_flag["stop"]:
+        progress_str.set(f"Uncompressing...")
+        print("Unzipping...")
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_path)
     
-    extract_path = os.path.join(working_dir, "LegacyLauncher/Minecraft_LCE")
-    os.makedirs(extract_path, exist_ok=True)
-    
-    with open(zip_path, "wb") as f:
-        f.write(response.content)
-    
-    print("Unzipping...")
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(extract_path)
-    
+    progress_str.set("Cleaning up...")
+    print("Cleaning up (removing zip file)...")
     os.remove(zip_path)
-    print(f"Downloaded & extracted LCE into {extract_path}")\
+    print(f"Downloaded & extracted LCE into {extract_path}")
+    
+    progress_str.set("")
+    progress.set(0)
+    if not stop_flag["stop"]:
+        progressbar.after(0, progressbar.destroy)
 
 
-window = Tk()
+def download_game(url):
+    root = Toplevel()
+    root.title = ("Download Progress")
+    root.geometry(get_geometry_centred(200, 70))
+    root.resizable(False, False)
 
-dpi = window.winfo_fpixels("1i")
-scale = dpi / 72
-window.tk.call("tk", "scaling", dpi / 48)
+    root.transient(window)
+    root.grab_set()
+    
+    counter = Label(root, textvariable=progress_str)
+    counter.pack(padx=10, pady=10)
+
+    bar = ttk.Progressbar(root, variable=progress, maximum=100)
+    bar.pack(padx=10, pady=(0, 10), fill="x")
+    
+    stop_flag = {"stop": False} # mutable so that thread will detect change
+
+    def on_close():
+        stop_flag["stop"] = True
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+ 
+    Thread(target=lambda: perform_download(url, stop_flag, root), daemon=True).start()
+    
 
 def get_geometry_centred(w, h):
     screen_w = window.winfo_screenwidth()
@@ -49,7 +91,7 @@ def get_geometry_centred(w, h):
 
 window.title("LegacyLauncher")
 
-window.geometry(get_geometry_centred(int(450 * scale), int(250 * scale)))
+window.geometry(get_geometry_centred(420, 280))
 window.resizable(False, False)
 
 frame = Frame(window)
@@ -58,6 +100,7 @@ frame.pack(expand=True)
 name = StringVar()
 ip = StringVar()
 port = StringVar()
+verified_url = StringVar()
 
 # General option label
 
@@ -101,47 +144,61 @@ def launch_multiplayer():
     command = ["./LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe", "-name", name.get(), "-ip", ip.get(), "-port", port.get()]
     subprocess.Popen(command)
 
+# Create button UI area
+footer = Frame(frame)
+footer.grid(row=5, column=0, columnspan=2, pady=(20, 10))
+
 # Singleplayer button
 
-singleplayer_button = Button(frame, text="Launch normally", command=launch)
-singleplayer_button.grid(row=5, column=0, pady=(20, 10), padx=5)
+singleplayer_button = Button(footer, text="Launch normally", command=launch)
+singleplayer_button.grid(row=0, column=0, padx=5)
 
 # Multiplayer button
 
-multiplayer_button = Button(frame, text="Launch into server", command=launch_multiplayer)
-multiplayer_button.grid(row=5, column=1, pady=(20, 10), padx=5)
+multiplayer_button = Button(footer, text="Launch into server", command=launch_multiplayer)
+multiplayer_button.grid(row=0, column=1, padx=5)
 
-def download_popup():
+def download_popup(info: str): # info string will be displayed above download buttons
     root = Toplevel()
     root.title = ("Download Required")
-    root.geometry(get_geometry_centred(int(440 * scale), int(180 * scale)))
+    root.geometry(get_geometry_centred(360, 220))
     root.resizable(False, False)
 
     root.transient(window)
     root.grab_set()
 
-    label = Label(root, text="No Minecraft LCE install was found.\nChoose at option below to download it automagically!\n(will be stored in a folder alongside this executable)")
+    label = Label(root, text=info)
     label.pack(pady=10)
 
-    def start_download():
-        download_game()
+    def start_download_nightly():
+        download_game("https://github.com/smartcmd/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip")
         root.destroy()
 
-    dl_button = Button(root, text="Download Latest Nightly Build", command=start_download)
-    dl_button.pack(pady=10)
+    def start_download_verified():
+        download_game(verified_url.get())
+        root.destroy()
 
-    warning = Label(root, text="The launcher will freeze for multiple minutes while downloading.\nPlease be patient!")
-    warning.pack(pady=10)
+    nightly_button = Button(root, text="Download Latest Nightly Build", command=start_download_nightly)
+    nightly_button.pack(pady=(10, 0))
+
+    verified_button = Button(root, text="Download Latest Verified Archive", command=start_download_verified)
+    verified_button.pack(pady=10)
+
+    url_label = Label(root, text="Verified archive will download from:")
+    url_label.pack(pady=(10,0))
+
+    url_ent = Entry(root, textvariable=verified_url, width=48)
+    url_ent.pack(pady=10)
 
 # Check if game exists, send download popup if it doesn't
 if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
-    download_popup()
+    download_popup("No Minecraft LCE install was found.\nChoose at option below to download it automagically!")
 
 if not os.path.exists("LegacyLauncher/options.txt"):
     os.makedirs("LegacyLauncher", exist_ok=True)
 
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write("Steve\n0.0.0.0\n25565")
+        f.write("Steve\n0.0.0.0\n25565\nhttps://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
 
 f = open("LegacyLauncher/options.txt", "r")
 filedata = [L.rstrip() for L in f]
@@ -150,14 +207,22 @@ print(filedata)
 name.set(filedata[0])
 ip.set(filedata[1])
 port.set(filedata[2])
+verified_url.set(filedata[3])
 
 def save_config(*args):
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{name.get()}\n{ip.get()}\n{port.get()}")
+        f.write(f"{name.get()}\n{ip.get()}\n{port.get()}\n{verified_url.get()}")
 
 name.trace_add("write", save_config)
 ip.trace_add("write", save_config)
 port.trace_add("write", save_config)
+verified_url.trace_add("write", save_config)
+
+def update():
+    download_popup("Where should Minecraft LCE be downloaded from?\nChoose one of the options below:")
+
+update_button = Button(footer, text="📥 Update LCE", command=update)
+update_button.grid(row=0, column=2, padx=5)
 
 window.mainloop()
 
