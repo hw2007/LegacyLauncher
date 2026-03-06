@@ -178,11 +178,11 @@ def download_popup(info: str): # info string will be displayed above download bu
         download_game(verified_url.get())
         root.destroy()
 
-    nightly_button = Button(root, text="Download Latest Nightly Build", command=start_download_nightly)
-    nightly_button.pack(pady=(10, 0))
-
-    verified_button = Button(root, text="Download Latest Verified Archive", command=start_download_verified)
-    verified_button.pack(pady=10)
+    verified_button = Button(root, text="✅ Download Latest Verified Archive", command=start_download_verified)
+    verified_button.pack(pady=(10,0))
+    
+    nightly_button = Button(root, text="🌙 Download Latest Nightly Build", command=start_download_nightly)
+    nightly_button.pack(pady=10)
 
     url_label = Label(root, text="Verified archive will download from:")
     url_label.pack(pady=(10,0))
