@@ -140,23 +140,14 @@ def launch():
     command = ["./LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe", "-name", name.get()]
     subprocess.Popen(command)
 
-def launch_multiplayer():
-    command = ["./LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe", "-name", name.get(), "-ip", ip.get(), "-port", port.get()]
-    subprocess.Popen(command)
-
 # Create button UI area
 footer = Frame(frame)
 footer.grid(row=5, column=0, columnspan=2, pady=(20, 10))
 
 # Singleplayer button
 
-singleplayer_button = Button(footer, text="Launch normally", command=launch)
+singleplayer_button = Button(footer, text="Launch Game", command=launch)
 singleplayer_button.grid(row=0, column=0, padx=5)
-
-# Multiplayer button
-
-multiplayer_button = Button(footer, text="Launch into server", command=launch_multiplayer)
-multiplayer_button.grid(row=0, column=1, padx=5)
 
 def download_popup(info: str): # info string will be displayed above download buttons
     root = Toplevel()
@@ -198,20 +189,31 @@ if not os.path.exists("LegacyLauncher/options.txt"):
     os.makedirs("LegacyLauncher", exist_ok=True)
 
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write("Steve\n0.0.0.0\n25565\nhttps://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
+        f.write("Steve\nhttps://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
+
+if not os.path.exists("LegacyLauncher/Minecraft_LCE/servers.txt"):
+    os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
+
+    with open("LegacyLauncher/Minecraft_LCE/servers.txt", "w") as f:
+        f.write("127.0.0.1\n25565\nServer")
 
 f = open("LegacyLauncher/options.txt", "r")
-filedata = [L.rstrip() for L in f]
+options = [L.rstrip() for L in f]
 f.close()
-print(filedata)
-name.set(filedata[0])
-ip.set(filedata[1])
-port.set(filedata[2])
-verified_url.set(filedata[3])
+
+f = open("LegacyLauncher/Minecraft_LCE/servers.txt", "r")
+server = [L.rstrip() for L in f]
+
+name.set(options[0])
+verified_url.set(options[1])
+ip.set(server[0])
+port.set(server[1])
 
 def save_config(*args):
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{name.get()}\n{ip.get()}\n{port.get()}\n{verified_url.get()}")
+        f.write(f"{name.get()}\n{verified_url.get()}")
+    with open("LegacyLauncher/Minecraft_LCE/servers.txt", "w") as f:
+        f.write(f"{ip.get()}\n{port.get()}\nServer")
 
 name.trace_add("write", save_config)
 ip.trace_add("write", save_config)
