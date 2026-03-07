@@ -138,6 +138,7 @@ frame = Frame(window)
 frame.pack(expand=True)
 
 name = StringVar()
+servername=StringVar()
 ip = StringVar()
 port = StringVar()
 verified_url = StringVar()
@@ -162,11 +163,11 @@ multi_lb.grid(row=2, column=0, columnspan=2, pady=(10, 5))
 
 # Server name input
 
-ip_lb = Label(frame, text="Server Name (can be anything):")
-ip_lb.grid(row=3, column=0, padx=0, pady=0)
+servername_lb = Label(frame, text="Server Name (can be anything):")
+servername_lb.grid(row=3, column=0, padx=0, pady=0)
 
-ip_ent = Entry(frame, textvariable=ip)
-ip_ent.grid(row=3, column=1, padx=0, pady=0)
+servername_ent = Entry(frame, textvariable=servername)
+servername_ent.grid(row=3, column=1, padx=0, pady=0)
 
 # IP address input
 
@@ -274,6 +275,7 @@ server = [L.rstrip() for L in f]
 # Load options & servers
 name.set(options[0])
 verified_url.set(options[1])
+servername.set(server[2])
 ip.set(server[0])
 port.set(server[1])
 
@@ -282,10 +284,11 @@ def save_config(*args):
     with open("LegacyLauncher/options.txt", "w") as f:
         f.write(f"{name.get()}\n{verified_url.get()}")
     with open("LegacyLauncher/Minecraft_LCE/servers.txt", "w") as f:
-        f.write(f"{ip.get()}\n{port.get()}\nServer")
+        f.write(f"{ip.get()}\n{port.get()}\n{servername.get()}")
 
 # Make save_config run whenever text inputs are changed
 name.trace_add("write", save_config)
+servername.trace_add("write", save_config)
 ip.trace_add("write", save_config)
 port.trace_add("write", save_config)
 verified_url.trace_add("write", save_config)
