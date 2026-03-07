@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import ttk
 import os
 import requests
+import certifi
 import zipfile
 import subprocess
 from threading import Thread
@@ -18,7 +19,7 @@ def perform_download(url, stop_flag, progressbar):
     
     print("Download started...")
         
-    with requests.get(url, stream=True) as r:
+    with requests.get(url, stream=True, verify=certifi.where()) as r:
         r.raise_for_status() # Raise error if download fails
         total_size = int(r.headers.get("Content-Length", 0))
         chunk_size = 1024 # 1KB chunks
