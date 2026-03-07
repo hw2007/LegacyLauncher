@@ -14,8 +14,7 @@ progress = DoubleVar()
 progress_str = StringVar()
 
 def perform_download(url, stop_flag, progressbar):
-    working_dir = os.path.dirname(os.path.abspath(__file__))
-    zip_path = os.path.join(working_dir, "LCEWindows64.zip")
+    zip_path = "LegacyLauncher/LCEWindows64.zip"
     
     print("Download started...")
         
@@ -25,7 +24,7 @@ def perform_download(url, stop_flag, progressbar):
         chunk_size = 1024 # 1KB chunks
         num_chunks = total_size // chunk_size + 1
 
-        extract_path = os.path.join(working_dir, "LegacyLauncher/Minecraft_LCE")
+        extract_path = "LegacyLauncher/Minecraft_LCE"
         os.makedirs(extract_path, exist_ok=True)
 
         with open(zip_path, "wb") as f:
