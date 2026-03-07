@@ -10,8 +10,6 @@ from threading import Thread
 
 window = Tk()
 
-icon = PhotoImage(file="icon.png")
-
 progress = DoubleVar()
 progress_str = StringVar()
 
@@ -59,7 +57,6 @@ def perform_download(url, stop_flag, progressbar):
 def download_game(url):
     root = Toplevel()
     root.title = ("Download Progress")
-    root.iconphoto(True, icon)
     root.geometry(get_geometry_centred(200, 70))
     root.resizable(False, False)
 
@@ -93,7 +90,6 @@ def get_geometry_centred(w, h):
     return f"{w}x{h}+{x}+{y}"
 
 window.title("LegacyLauncher")
-window.iconphoto(True, icon)
 
 window.geometry(get_geometry_centred(420, 280))
 window.resizable(False, False)
@@ -156,7 +152,6 @@ singleplayer_button.grid(row=0, column=0, padx=5)
 def download_popup(info: str): # info string will be displayed above download buttons
     root = Toplevel()
     root.title = ("Download Required")
-    root.iconphoto(True, icon)
     root.geometry(get_geometry_centred(360, 220))
     root.resizable(False, False)
 
