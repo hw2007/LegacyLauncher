@@ -25,3 +25,10 @@ This is intended to be a super simple & crude launcher for Minecraft LCE. It all
 After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. If you are playing on someone's server, for example, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
 
 The latest nightly build is updated every day, and is sourced from <a href=https://github.com/smartcmd/MinecraftConsoles>smartcmd/MinecraftConsoles</a>.
+
+# Updating LegacyLauncher
+To update an existing install of legacy launcher, simply... 
+1. Go to the <a href=https://github.com/hw2007/LegacyLauncher/releases/latest>latest release</a>
+2. Download LegacyLauncher.zip
+3. Unzip the file
+4. Replace the old LegacyLauncher.exe with the new one from the unzipped file.
