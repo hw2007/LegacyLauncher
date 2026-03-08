@@ -10,6 +10,9 @@ from threading import Thread
 
 window = Tk()
 
+style = ttk.Style()
+print(style.theme_names())
+
 progress = DoubleVar()
 progress_str = StringVar()
 
@@ -131,7 +134,7 @@ def get_geometry_centred(w, h):
 # Create main window
 window.title("LegacyLauncher")
 
-window.geometry(get_geometry_centred(380, 240))
+window.geometry(get_geometry_centred(380, 220))
 window.resizable(False, False)
 
 frame = Frame(window)
@@ -191,8 +194,8 @@ def launch():
     subprocess.Popen(command)
 
 # Create button UI area
-footer = Frame(frame)
-footer.grid(row=6, column=0, columnspan=2, pady=(20, 10))
+footer = Frame(window)
+footer.pack(expand=True)
 
 # Singleplayer button
 
@@ -231,11 +234,11 @@ def download_popup(info: str):
         root.destroy()
     
     # Button for verified archive
-    verified_button = Button(root, text="✅ Download Latest Verified Archive", command=start_download_verified)
+    verified_button = Button(root, text="Download Latest Verified Archive", command=start_download_verified)
     verified_button.pack(pady=(0,5))
     
     # Button for nighly build
-    nightly_button = Button(root, text="🌙 Download Latest Nightly Build", command=start_download_nightly)
+    nightly_button = Button(root, text="Download Latest Nightly Build", command=start_download_nightly)
     nightly_button.pack(pady=0)
     
     # Input for verified archive URL
@@ -298,7 +301,7 @@ def update():
     download_popup("Where should Minecraft LCE be downloaded from?\nChoose one of the options below:")
 
 # Button to open update popup
-update_button = Button(footer, text="📥 Update LCE", command=update)
+update_button = Button(footer, text="Update LCE", command=update)
 update_button.grid(row=0, column=2, padx=5)
 
 # GO GO GO
