@@ -21,6 +21,12 @@ This is intended to be a super simple & crude launcher for Minecraft LCE. It all
 4. If you are using Wayland, set the launch options to `PROTON_USE_WINED3D=1 %command%`
 5. Open the launcher through steam
 
+### macOS
+1. Follow steps 1-4 for the Windows instructions
+2. Download & install <a href=https://getwhisky.app/>Whisky</a>
+3. Create a new bottle inside of Whisky. Leave all settings default (name can be whatever you want).
+4. Open LegacyLauncher.exe. If it isn't working, make sure you are opening it with Whisky.
+
 # Setup
 After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. If you are playing on someone's server, for example, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
 
