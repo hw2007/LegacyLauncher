@@ -1,6 +1,8 @@
 # LegacyLauncher
 Launcher for Minecraft: Legacy Console Edition
 
+<img width="382" height="252" alt="image" src="https://github.com/user-attachments/assets/d308a5e4-f248-410d-87ae-b447c8fd44fc" />
+
 # Purpose
 This is intended to be a super simple & crude launcher for Minecraft LCE. It allows you to submit a username & server information, then launch or update LCE.
 
