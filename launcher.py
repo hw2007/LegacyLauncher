@@ -3,15 +3,29 @@
 from tkinter import *
 from tkinter import ttk
 import os
+import sys
 import requests
 import zipfile
 import subprocess
 from threading import Thread
 
+def resource_path(path):
+    """
+    Purpose: Return the path of a resource, no matter if running from source or from build
+    Preconditions:
+        path: string, a valid path to resource, relative to script
+    Returns:
+        string, absolute path to that resource
+    """
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, path)
+    return os.path.join(os.path.abspath("."), path)
+
 window = Tk()
 
-style = ttk.Style()
-print(style.theme_names())
+# Set window icon
+icon = PhotoImage(file=resource_path("icon.png"))
+window.iconphoto(True, icon)
 
 progress = DoubleVar()
 progress_str = StringVar()
