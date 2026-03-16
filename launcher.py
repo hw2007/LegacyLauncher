@@ -9,6 +9,8 @@ import zipfile
 import subprocess
 from threading import Thread
 
+CONFIG_VERSION = 1
+
 def resource_path(path):
     """
     Purpose: Return the path of a resource, no matter if running from source or from build
@@ -174,8 +176,6 @@ full_check.pack(pady=10)
 def launch():
     # Launches the game with custom username
     command = ["./LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe", "-name", name.get()]
-    if fullscreen.get():
-        command.append("-fullscreen")
     subprocess.Popen(command)
 
 # Create button UI area
@@ -241,33 +241,43 @@ if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
 try:
     f = open("LegacyLauncher/options.txt", "r")
     options = [L.rstrip() for L in f]
+    if not options[0].isdigit(): # Detect older config format which doesn't include a version at the top. WARNING: This will run into issues if the player set their usename to only numbers. Oh, bother...
+        print("Unversioned config detected")
+        options.insert(0, "0")
     f.close()
 except:
     print("Error opening options.txt")
 
 # Load options & servers
 try:
-    name.set(options[0])
+    name.set(options[1])
 except:
     name.set("Steve")
     print("Cannot get name")
 try:
-    verified_url.set(options[1])
+    verified_url.set(options[2])
 except:
     verified_url.set("https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
     print("Cannot get URL")
 try:
-    fullscreen.set(options[2] == "True")
+    fullscreen.set(options[3] == "True")
 except:
     fullscreen.set(True)
     print("Cannot get fullscreen")
 
 # Save options & servers
 def save_config(*args):
-    os.makedirs("LegacyLauncher", exist_ok=True)
+    os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
 
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{name.get()}\n{verified_url.get()}\n{fullscreen.get()}")
+        f.write(f"{CONFIG_VERSION}\n{name.get()}\n{verified_url.get()}\n{fullscreen.get()}")
+    with open("LegacyLauncher/Minecraft_LCE/options.txt", "w") as f:
+        data = ""
+        if fullscreen.get():
+            data = "fullscreen=1"
+        else:
+            data = "fullscreen=0"
+        f.write(data)
 
 # Make save_config run whenever text inputs are changed
 name.trace_add("write", save_config)
