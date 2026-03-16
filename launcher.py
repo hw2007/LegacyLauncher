@@ -238,9 +238,12 @@ if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
     download_popup("No Minecraft LCE install was found.\nChoose at option below to download it automagically!")
 
 # Read options file
-f = open("LegacyLauncher/options.txt", "r")
-options = [L.rstrip() for L in f]
-f.close()
+try:
+    f = open("LegacyLauncher/options.txt", "r")
+    options = [L.rstrip() for L in f]
+    f.close()
+except:
+    print("Error opening options.txt")
 
 # Load options & servers
 try:
@@ -251,7 +254,7 @@ except:
 try:
     verified_url.set(options[1])
 except:
-    verified_url.set("https://github.com/hw2007/lce-verified-archive/releases/download/latest/lcewindows64.zip")
+    verified_url.set("https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
     print("Cannot get URL")
 try:
     fullscreen.set(options[2] == "True")
