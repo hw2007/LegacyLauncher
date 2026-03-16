@@ -148,63 +148,34 @@ def get_geometry_centred(w, h):
 # Create main window
 window.title("LegacyLauncher")
 
-window.geometry(get_geometry_centred(380, 220))
+window.geometry(get_geometry_centred(290, 160))
 window.resizable(False, False)
 
 frame = Frame(window)
 frame.pack(expand=True)
 
 name = StringVar()
-servername=StringVar()
-ip = StringVar()
-port = StringVar()
 verified_url = StringVar()
-
-# General option label
-
-general_lb = Label(frame, text="General Options")
-general_lb.grid(row=0, column=0, columnspan=2, pady=(10, 5))
+fullscreen = BooleanVar()
 
 # Username input
 
 name_lb = Label(frame, text="Player Name (can be anything):")
-name_lb.grid(row=1, column=0, padx=10, pady=0)
+name_lb.pack(pady=(10,0))
 
 name_ent = Entry(frame, textvariable=name)
-name_ent.grid(row=1, column=1, padx=0, pady=0)
+name_ent.pack(pady=0)
 
-# Multiplayer label
+# Fullscreen toggle
 
-multi_lb = Label(frame, text="Server Options")
-multi_lb.grid(row=2, column=0, columnspan=2, pady=(10, 5))
-
-# Server name input
-
-servername_lb = Label(frame, text="Server Name (can be anything):")
-servername_lb.grid(row=3, column=0, padx=0, pady=0)
-
-servername_ent = Entry(frame, textvariable=servername)
-servername_ent.grid(row=3, column=1, padx=0, pady=0)
-
-# IP address input
-
-ip_lb = Label(frame, text="Server IP Address:")
-ip_lb.grid(row=4, column=0, padx=0, pady=0)
-
-ip_ent = Entry(frame, textvariable=ip)
-ip_ent.grid(row=4, column=1, padx=0, pady=0)
-
-# Port input
-
-port_lb = Label(frame, text="Server Port:")
-port_lb.grid(row=5, column=0, padx=0, pady=0)
-
-port_ent = Entry(frame, textvariable=port)
-port_ent.grid(row=5, column=1, padx=0, pady=0)
+full_check = Checkbutton(frame, text="Launch in Fullscreen", variable=fullscreen)
+full_check.pack(pady=10)
 
 def launch():
     # Launches the game with custom username
     command = ["./LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe", "-name", name.get()]
+    if fullscreen.get():
+        command.append("-fullscreen")
     subprocess.Popen(command)
 
 # Create button UI area
@@ -266,49 +237,41 @@ def download_popup(info: str):
 if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
     download_popup("No Minecraft LCE install was found.\nChoose at option below to download it automagically!")
 
-# Does options file exist? If not, make it.
-if not os.path.exists("LegacyLauncher/options.txt"):
-    os.makedirs("LegacyLauncher", exist_ok=True)
-
-    with open("LegacyLauncher/options.txt", "w") as f:
-        f.write("Steve\nhttps://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
-
-# Does servers file exist? If not, make it.
-if not os.path.exists("LegacyLauncher/Minecraft_LCE/servers.txt"):
-    os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
-
-    with open("LegacyLauncher/Minecraft_LCE/servers.txt", "w") as f:
-        f.write("127.0.0.1\n25565\nServer")
-
 # Read options file
 f = open("LegacyLauncher/options.txt", "r")
 options = [L.rstrip() for L in f]
 f.close()
 
-# Read servers file
-f = open("LegacyLauncher/Minecraft_LCE/servers.txt", "r")
-server = [L.rstrip() for L in f]
-
 # Load options & servers
-name.set(options[0])
-verified_url.set(options[1])
-servername.set(server[2])
-ip.set(server[0])
-port.set(server[1])
+try:
+    name.set(options[0])
+except:
+    name.set("Steve")
+    print("Cannot get name")
+try:
+    verified_url.set(options[1])
+except:
+    verified_url.set("https://github.com/hw2007/lce-verified-archive/releases/download/latest/lcewindows64.zip")
+    print("Cannot get URL")
+try:
+    fullscreen.set(options[2] == "True")
+except:
+    fullscreen.set(True)
+    print("Cannot get fullscreen")
 
 # Save options & servers
 def save_config(*args):
+    os.makedirs("LegacyLauncher", exist_ok=True)
+
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{name.get()}\n{verified_url.get()}")
-    with open("LegacyLauncher/Minecraft_LCE/servers.txt", "w") as f:
-        f.write(f"{ip.get()}\n{port.get()}\n{servername.get()}")
+        f.write(f"{name.get()}\n{verified_url.get()}\n{fullscreen.get()}")
 
 # Make save_config run whenever text inputs are changed
 name.trace_add("write", save_config)
-servername.trace_add("write", save_config)
-ip.trace_add("write", save_config)
-port.trace_add("write", save_config)
 verified_url.trace_add("write", save_config)
+fullscreen.trace_add("write", save_config)
+
+save_config()
 
 # Open popup to update LCE
 def update():
