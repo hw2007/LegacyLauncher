@@ -358,10 +358,10 @@ uid_label.grid(row=0, column=0, pady=0)
 uid_val = Label(uid_frame, textvariable=uid, fg="gray")
 uid_val.grid(row=0, column=1)
 
-uid_edit = Button(uid_frame, text="✎", borderwidth=0, padx=4, pady=4, command=edit_uid_window)
+uid_edit = Button(uid_frame, text="edit", borderwidth=0, padx=0, pady=4, command=edit_uid_window)
 uid_edit.grid(row=0, column=2)
 
-uid_copy = Button(uid_frame, text="📋", borderwidth=0, padx=4, pady=4, command=copy_uid)
+uid_copy = Button(uid_frame, text="copy", borderwidth=0, padx=0, pady=4, command=copy_uid)
 uid_copy.grid(row=0, column=3)
 
 # GO GO GO
