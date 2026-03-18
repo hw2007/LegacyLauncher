@@ -160,6 +160,8 @@ name = StringVar()
 verified_url = StringVar()
 fullscreen = BooleanVar()
 
+uid = StringVar()
+
 # Username input
 
 name_lb = Label(frame, text="Player Name (can be anything):")
@@ -180,7 +182,7 @@ def launch():
 
 # Create button UI area
 footer = Frame(window)
-footer.pack(expand=True)
+footer.pack()
 
 # Singleplayer button
 
@@ -265,6 +267,16 @@ except:
     fullscreen.set(True)
     print("Cannot get fullscreen")
 
+# Try to read UID
+try:
+    f = open("LegacyLauncher/Minecraft_LCE/uid.dat", 'r')
+    data = list(f)
+    f.close()
+    uid.set(data[0].rstrip())
+except:
+    uid.set("Unknown, run game to generate")
+    print("Cannot get UID")
+
 # Save options & servers
 def save_config(*args):
     os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
@@ -292,7 +304,65 @@ def update():
 
 # Button to open update popup
 update_button = Button(footer, text="Update LCE", command=update)
-update_button.grid(row=0, column=2, padx=5)
+update_button.grid(row=0, column=1, padx=5)
+
+def copy_uid():
+    # Purpose: copy the UID to the clipboard
+    window.clipboard_clear()
+    window.clipboard_append(uid.get())
+
+def edit_uid_window(): 
+    uid_temp = StringVar()
+    uid_temp.set(uid.get())
+
+    # Create window for progress bar
+    root = Toplevel()
+    root.title = ("Edit UID")
+    root.geometry(get_geometry_centred(210, 80))
+    root.resizable(False, False)
+    
+    # Makes the window the "focus", don't let user interact with main window while downloading
+    root.transient(window)
+    root.grab_set()
+     
+    def save_uid():
+        os.makedirs("LegacyLauncher/Minecraft_LCE/", exist_ok=True)
+        with open("LegacyLauncher/Minecraft_LCE/uid.dat", 'w') as f:
+            f.write(uid_temp.get())
+        uid.set(uid_temp.get())
+
+        root.destroy()
+    
+    def cancel():
+        root.destroy()
+
+    uid_ent = Entry(root, textvariable=uid_temp, width=24)
+    uid_ent.pack(pady=10)
+
+    tools = Frame(root)
+    tools.pack()
+
+    cancel = Button(tools, text="Cancel", command=cancel)
+    cancel.grid(row=1, column=0, padx=5)
+
+    submit = Button(tools, text="Submit", command=save_uid)
+    submit.grid(row=1, column=1, padx=5)
+
+# UID indicator
+uid_frame = Frame(window)
+uid_frame.pack()
+
+uid_label = Label(uid_frame, text="UID:", fg="gray")
+uid_label.grid(row=0, column=0, pady=0)
+
+uid_val = Label(uid_frame, textvariable=uid, fg="gray")
+uid_val.grid(row=0, column=1)
+
+uid_edit = Button(uid_frame, text="✎", borderwidth=0, padx=4, pady=4, command=edit_uid_window)
+uid_edit.grid(row=0, column=2)
+
+uid_copy = Button(uid_frame, text="📋", borderwidth=0, padx=4, pady=4, command=copy_uid)
+uid_copy.grid(row=0, column=3)
 
 # GO GO GO
 window.mainloop()
