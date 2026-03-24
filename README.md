@@ -4,7 +4,7 @@ Launcher for Minecraft: Legacy Console Edition
 <img width="292" height="192" alt="image" src="https://github.com/user-attachments/assets/9dde98b5-6f1a-4a61-b000-9a6734122f9a" />
 
 # Purpose
-This is intended to be a super simple & crude launcher for Minecraft LCE. It allows you to submit a username & server information, then launch or update LCE.
+This is intended to be a super simple & crude launcher for Minecraft LCE. It allows you download LCE automatically, to submit a username, choose fullscreen options, then launch or update LCE.
 
 # Installation
 ### Windows
@@ -28,9 +28,9 @@ This is intended to be a super simple & crude launcher for Minecraft LCE. It all
 4. Open LegacyLauncher.exe. If it isn't working, make sure you are opening it with Whisky.
 
 # Setup
-After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. If you are playing on someone's server, for example, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
+After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. The nightly build is not guarenteed to be stable, as it is essentially a WIP version that gets updated each day. If you are playing on someone's server, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
 
-The latest nightly build is updated every day, and is sourced from <a href=https://github.com/smartcmd/MinecraftConsoles>smartcmd/MinecraftConsoles</a>.
+The latest nightly build & my verified archives are sourced from <a href=https://github.com/smartcmd/MinecraftConsoles>smartcmd/MinecraftConsoles</a>.
 
 # Updating LegacyLauncher
 To update an existing install of legacy launcher, simply... 
