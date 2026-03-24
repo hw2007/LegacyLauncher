@@ -7,6 +7,7 @@ Launcher for Minecraft: Legacy Console Edition
 This is intended to be a super simple & crude launcher for Minecraft LCE. It allows you download LCE automatically, to submit a username, choose fullscreen options, then launch or update LCE.
 
 # Installation
+## ❗ After installation, please read the setup instructions which are further down this page.
 ### Windows
 1. Click on the <a href=https://github.com/hw2007/LegacyLauncher/releases/latest>latest release</a>
 2. Download LegacyLauncher.zip
