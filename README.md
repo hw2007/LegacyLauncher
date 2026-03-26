@@ -29,6 +29,13 @@ Note: LegacyLauncher is not regularily tested on macOS. Please write a report if
 3. Create a new bottle inside of Whisky. Leave all settings default (name can be whatever you want).
 4. Open LegacyLauncher.exe. If it isn't working, make sure you are opening it with Whisky.
 
+### Manual Building
+1. Download the source code
+2. Ensure you have python 3.x and pyinstaller installed.
+3. Open the project directory in your terminal, and run `pyinstaller LegacyLauncher.spec` to create a build for your operating system.
+
+Note: While you can technically create native builds for linux & macOS, this is not officially supported and you will not be able to simply run LCE that way since there are only windows builds available.
+
 # Setup
 After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. The nightly build is not guarenteed to be stable, as it is essentially a WIP version that gets updated each day. If you are playing on someone's server, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
 
