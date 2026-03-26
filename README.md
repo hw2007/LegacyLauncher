@@ -23,6 +23,7 @@ This is intended to be a super simple & crude launcher for Minecraft LCE. It all
 5. Open the launcher through steam
 
 ### macOS
+Note: LegacyLauncher is not regularily tested on macOS. Please write a report if there are any issues.
 1. Follow steps 1-4 for the Windows instructions
 2. Download & install <a href=https://getwhisky.app/>Whisky</a>
 3. Create a new bottle inside of Whisky. Leave all settings default (name can be whatever you want).
