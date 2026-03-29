@@ -17,8 +17,6 @@ DOWNLOAD_SOURCES = {
     "custom": "" # Will be loaded later
 }
 
-download_source = "unknown"
-
 
 def resource_path(path):
     """
@@ -42,66 +40,90 @@ window.iconphoto(True, icon)
 progress = DoubleVar()
 progress_str = StringVar()
 
+download_source = StringVar()
 
-def perform_download(url, stop_flag, progressbar):
+
+def perform_download(url, stop_flag, error_flag, progressbar) -> int:
     """
     Purpose: Performs the game download. Intended to be run in a thread.
     Preconditions:
         url: string, URL to download game from
         stop_flag: A reference to a dictionary formatted as {"stop": False}. If it is set to True, the download will quit early.
+        error_flag: A reference to a dict formatted as {"error": <int>}. Used to return errors to main thread.
         progressbar: Reference to a UI window where the progress bar is shown.
     Postconditons:  
         LCE will be downloaded into LegacyLauncher/Minecraft_LCE. If is_update is True, we are only downloading the Minecraft.Client.exe
         No ZIP file should be leftover
+        error_flag["error"] will be modified. -1 if download failed, 0 if unzip failed, 1 if successful.
     """
+
+    def reset_ui():
+        """
+        Purpose: Delete the progressbar window & reset UI variables
+        """
+        # Reset UI
+        progress_str.set("")
+        progress.set(0)
+        # Delete progressbar window
+        if not stop_flag["stop"]:
+            progressbar.after(0, progressbar.destroy)
+
+
     download_path = "LegacyLauncher/temp_download.zip"
     
     print("Download started...")
     
     # Download the file
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status() # Raise error if download fails
-        total_size = int(r.headers.get("Content-Length", 0)) # Get size of file
-        chunk_size = 1024 # 1KB chunks
-        num_chunks = total_size // chunk_size  + 1
-        
-        # Create needed paths
-        minecraft_path = "LegacyLauncher/Minecraft_LCE"
-        os.makedirs(minecraft_path, exist_ok=True)
-        
-        # Download file, chunk-by-chunk
-        with open(download_path, "wb") as f:
-            for i, chunk in enumerate(r.iter_content(chunk_size=chunk_size)):
-                # if the user closes the download window, stop
-                if stop_flag["stop"]:
-                    print("Download cancelled")
-                    break
-                # If chunk is valid, save it
-                if chunk:
-                    f.write(chunk)
-                    # Update UI
-                    progress.set((i+1) / num_chunks * 100)
-                    progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
+    try:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status() # Raise error if download fails
+            total_size = int(r.headers.get("Content-Length", 0)) # Get size of file
+            chunk_size = 1024 # 1KB chunks
+            num_chunks = total_size // chunk_size  + 1
+            
+            # Create needed paths
+            minecraft_path = "LegacyLauncher/Minecraft_LCE"
+            os.makedirs(minecraft_path, exist_ok=True)
+            
+            # Download file, chunk-by-chunk
+            with open(download_path, "wb") as f:
+                for i, chunk in enumerate(r.iter_content(chunk_size=chunk_size)):
+                    # if the user closes the download window, stop
+                    if stop_flag["stop"]:
+                        print("Download cancelled")
+                        break
+                    # If chunk is valid, save it
+                    if chunk:
+                        f.write(chunk)
+                        # Update UI
+                        progress.set((i+1) / num_chunks * 100)
+                        progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
+    except:
+        error_flag["error"] = -1
+        reset_ui()
+        return
     
     # If download wasn't cancelled, start unzipping
-    if not stop_flag["stop"]:
-        progress_str.set(f"Uncompressing...")
-        print("Unzipping...")
-        with zipfile.ZipFile(download_path, "r") as zip_ref:
-            zip_ref.extractall(minecraft_path)
-        
+    try:
+        if not stop_flag["stop"]:
+            progress_str.set(f"Uncompressing...")
+            print("Unzipping...")
+            with zipfile.ZipFile(download_path, "r") as zip_ref:
+                zip_ref.extractall(minecraft_path)
+    except:
+        error_flag["error"] = 0
+        reset_ui()
+        return
+    
     # Delete the zip file
     progress_str.set("Cleaning up...")
     print("Cleaning up (removing zip file)...")
     os.remove(download_path)
     print(f"Downloaded & extracted LCE into {minecraft_path}")
     
-    # Reset UI
-    progress_str.set("")
-    progress.set(0)
-    # Delete progressbar window
-    if not stop_flag["stop"]:
-        progressbar.after(0, progressbar.destroy)
+    error_flag["error"] = 1
+    reset_ui()
+    return
 
 
 def download_game(url):
@@ -139,7 +161,8 @@ def download_game(url):
     root.protocol("WM_DELETE_WINDOW", on_close)
     
     # Start download thread
-    Thread(target=lambda: perform_download(url, stop_flag, root), daemon=True).start()
+    error_flag = {"error": -2}
+    flag = Thread(target=lambda: perform_download(url, stop_flag, error_flag, root), daemon=True).start()
     
 
 def get_geometry_centred(w, h):
@@ -210,8 +233,7 @@ def download_popup():
         info: string, the information to display in the window at the top
     Postconditions: A new window will be opened
     """
-    source = StringVar(value="archive")
-
+    
     # Create the window
     root = Toplevel()
     root.title = ("Download Required")
@@ -228,12 +250,12 @@ def download_popup():
     
     # Downloads the nightly build
     def start_download():
-        download_game(DOWNLOAD_SOURCES[source.get()])
+        download_game(DOWNLOAD_SOURCES[download_source.get()])
         root.destroy()
     
     # Updates the state of custom download options
     def update_state():
-        if source.get() == "custom":
+        if download_source.get() == "custom":
             url_label.config(state="normal")
             url_ent.config(state="normal")
         else:
@@ -244,15 +266,15 @@ def download_popup():
     radios.pack(pady=(0,10))
 
     # Button for verified archive
-    verified_button = Radiobutton(radios, text="Verified Archive", variable=source, value="archive", command=update_state)
+    verified_button = Radiobutton(radios, text="Verified Archive", variable=download_source, value="archive", command=update_state)
     verified_button.pack(anchor='w')
     
     # Button for nighly build
-    nightly_button = Radiobutton(radios, text="Nightly Build", variable=source, value="nightly", command=update_state)
+    nightly_button = Radiobutton(radios, text="Nightly Build", variable=download_source, value="nightly", command=update_state)
     nightly_button.pack(anchor='w')
 
     # Button for custom source
-    custom_button = Radiobutton(radios, text="Custom", variable=source, value="custom", command=update_state)
+    custom_button = Radiobutton(radios, text="Custom", variable=download_source, value="custom", command=update_state)
     custom_button.pack(anchor='w')
 
     # Input for custom full URL
@@ -315,9 +337,9 @@ except:
     fullscreen.set(defaults[3])
     print("Cannot get fullscreen")
 try:
-    download_source = options[4]
+    download_source.set(options[4])
 except:
-    download_source = defaults[4]
+    download_source.set(defaults[4])
     print("Cannot get download source")
 
 # Try to read UID
@@ -332,10 +354,12 @@ except:
 
 # Save options & servers
 def save_config(*args):
+    DOWNLOAD_SOURCES["custom"] = custom_url.get()
+
     os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
 
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{CONFIG_VERSION}\n{name.get()}\n{custom_url.get()}\n{fullscreen.get()}\n{download_source}")
+        f.write(f"{CONFIG_VERSION}\n{name.get()}\n{custom_url.get()}\n{fullscreen.get()}\n{download_source.get()}")
     with open("LegacyLauncher/Minecraft_LCE/options.txt", "w") as f:
         data = ""
         if fullscreen.get():
@@ -348,6 +372,7 @@ def save_config(*args):
 name.trace_add("write", save_config)
 custom_url.trace_add("write", save_config)
 fullscreen.trace_add("write", save_config)
+download_source.trace_add("write", save_config)
 
 save_config()
 
