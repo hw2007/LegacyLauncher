@@ -9,7 +9,16 @@ import zipfile
 import subprocess
 from threading import Thread
 
-CONFIG_VERSION = 1
+CONFIG_VERSION = 2
+
+DOWNLOAD_SOURCES = {
+    "archive": "https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip",
+    "nightly": "https://github.com/smartcmd/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip",
+    "custom": "" # Will be loaded later
+}
+
+download_source = "unknown"
+
 
 def resource_path(path):
     """
@@ -23,6 +32,7 @@ def resource_path(path):
         return os.path.join(sys._MEIPASS, path)
     return os.path.join(os.path.abspath("."), path)
 
+
 window = Tk()
 
 # Set window icon
@@ -32,6 +42,7 @@ window.iconphoto(True, icon)
 progress = DoubleVar()
 progress_str = StringVar()
 
+
 def perform_download(url, stop_flag, progressbar):
     """
     Purpose: Performs the game download. Intended to be run in a thread.
@@ -40,10 +51,10 @@ def perform_download(url, stop_flag, progressbar):
         stop_flag: A reference to a dictionary formatted as {"stop": False}. If it is set to True, the download will quit early.
         progressbar: Reference to a UI window where the progress bar is shown.
     Postconditons:  
-        LCE will be downloaded into LegacyLauncher/Minecraft_LCE
+        LCE will be downloaded into LegacyLauncher/Minecraft_LCE. If is_update is True, we are only downloading the Minecraft.Client.exe
         No ZIP file should be leftover
     """
-    zip_path = "LegacyLauncher/LCEWindows64.zip"
+    download_path = "LegacyLauncher/temp_download.zip"
     
     print("Download started...")
     
@@ -52,14 +63,14 @@ def perform_download(url, stop_flag, progressbar):
         r.raise_for_status() # Raise error if download fails
         total_size = int(r.headers.get("Content-Length", 0)) # Get size of file
         chunk_size = 1024 # 1KB chunks
-        num_chunks = total_size // chunk_size + 1
+        num_chunks = total_size // chunk_size  + 1
         
         # Create needed paths
-        extract_path = "LegacyLauncher/Minecraft_LCE"
-        os.makedirs(extract_path, exist_ok=True)
+        minecraft_path = "LegacyLauncher/Minecraft_LCE"
+        os.makedirs(minecraft_path, exist_ok=True)
         
         # Download file, chunk-by-chunk
-        with open(zip_path, "wb") as f:
+        with open(download_path, "wb") as f:
             for i, chunk in enumerate(r.iter_content(chunk_size=chunk_size)):
                 # if the user closes the download window, stop
                 if stop_flag["stop"]:
@@ -71,19 +82,19 @@ def perform_download(url, stop_flag, progressbar):
                     # Update UI
                     progress.set((i+1) / num_chunks * 100)
                     progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
-   
+    
     # If download wasn't cancelled, start unzipping
     if not stop_flag["stop"]:
         progress_str.set(f"Uncompressing...")
         print("Unzipping...")
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(extract_path)
-    
+        with zipfile.ZipFile(download_path, "r") as zip_ref:
+            zip_ref.extractall(minecraft_path)
+        
     # Delete the zip file
     progress_str.set("Cleaning up...")
     print("Cleaning up (removing zip file)...")
-    os.remove(zip_path)
-    print(f"Downloaded & extracted LCE into {extract_path}")
+    os.remove(download_path)
+    print(f"Downloaded & extracted LCE into {minecraft_path}")
     
     # Reset UI
     progress_str.set("")
@@ -97,10 +108,11 @@ def download_game(url):
     """
     Purpose: Download LCE in the background, and display a progress bar
     Percondition:
-        url: string, URL to download game from
+        url: string, URL to download game fromLegacyLauncher/Minecraft_LCE
     Postcondition:
-        Game will be downloaded into LegacyLauncher/Minecraft_LCE
+        Game will be downloaded into LegacyLauncher/Minecraft_LCE.
     """
+
     # Create window for progress bar
     root = Toplevel()
     root.title = ("Download Progress")
@@ -147,6 +159,7 @@ def get_geometry_centred(w, h):
 
     return f"{w}x{h}+{x}+{y}"
 
+
 # Create main window
 window.title("LegacyLauncher")
 
@@ -157,7 +170,7 @@ frame = Frame(window)
 frame.pack(expand=True)
 
 name = StringVar()
-verified_url = StringVar()
+custom_url = StringVar()
 fullscreen = BooleanVar()
 
 uid = StringVar()
@@ -189,17 +202,20 @@ footer.pack()
 singleplayer_button = Button(footer, text="Launch Minecraft LCE", command=launch)
 singleplayer_button.grid(row=0, column=0, padx=5)
 
-def download_popup(info: str):
+
+def download_popup():
     """
     Purpose: Show a popup to download LCE. Will give options to download nightly build or verified archive.
     Preconditions:
         info: string, the information to display in the window at the top
     Postconditions: A new window will be opened
     """
+    source = StringVar(value="archive")
+
     # Create the window
     root = Toplevel()
     root.title = ("Download Required")
-    root.geometry(get_geometry_centred(360, 170))
+    root.geometry(get_geometry_centred(330, 280))
     root.resizable(False, False)
     
     # Make window the focused window, so you can't interact with main window until closing it
@@ -207,37 +223,65 @@ def download_popup(info: str):
     root.grab_set()
     
     # Info label
-    label = Label(root, text=info)
-    label.pack(pady=(10, 5))
+    label = Label(root, text="Choose a version of LCE to install automagically:")
+    label.pack(pady=(10, 0))
     
     # Downloads the nightly build
-    def start_download_nightly():
-        download_game("https://github.com/smartcmd/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip")
+    def start_download():
+        download_game(DOWNLOAD_SOURCES[source.get()])
         root.destroy()
     
-    # Downloads the verified archive
-    def start_download_verified():
-        download_game(verified_url.get())
-        root.destroy()
+    # Updates the state of custom download options
+    def update_state():
+        if source.get() == "custom":
+            url_label.config(state="normal")
+            url_ent.config(state="normal")
+        else:
+            url_label.config(state="disabled")
+            url_ent.config(state="disabled")
     
+    radios = Frame(root)
+    radios.pack(pady=(0,10))
+
     # Button for verified archive
-    verified_button = Button(root, text="Download Latest Verified Archive", command=start_download_verified)
-    verified_button.pack(pady=(0,5))
+    verified_button = Radiobutton(radios, text="Verified Archive", variable=source, value="archive", command=update_state)
+    verified_button.pack(anchor='w')
     
     # Button for nighly build
-    nightly_button = Button(root, text="Download Latest Nightly Build", command=start_download_nightly)
-    nightly_button.pack(pady=0)
-    
-    # Input for verified archive URL
-    url_label = Label(root, text="Verified archive will download from:")
-    url_label.pack(pady=(5,0))
+    nightly_button = Radiobutton(radios, text="Nightly Build", variable=source, value="nightly", command=update_state)
+    nightly_button.pack(anchor='w')
 
-    url_ent = Entry(root, textvariable=verified_url, width=48)
-    url_ent.pack(pady=0)
+    # Button for custom source
+    custom_button = Radiobutton(radios, text="Custom", variable=source, value="custom", command=update_state)
+    custom_button.pack(anchor='w')
+
+    # Input for custom full URL
+    url_label = Label(root, text="Custom install URL:", state="disabled")
+    url_label.pack()
+
+    url_ent = Entry(root, textvariable=custom_url, width=44, state="disabled")
+    url_ent.pack()
+
+    buttons = Frame(root)
+    buttons.pack(pady=10)
+
+    def cancel():
+        root.destroy()
+
+    # Cancel button
+    cancel_button = Button(buttons, text="Cancel", command=cancel)
+    cancel_button.grid(column=0, row=0, padx=5)
+
+    # Download button
+    download_button = Button(buttons, text="Start Download", command=start_download)
+    download_button.grid(column=1, row=0, padx=5)
+
+
+#### DEAL WITH CONFIG FILES ####
 
 # Check if game exists, send download popup if it doesn't
 if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
-    download_popup("No Minecraft LCE install was found.\nChoose at option below to download it automagically!")
+    download_popup()
 
 # Read options file
 try:
@@ -246,26 +290,35 @@ try:
     if not options[0].isdigit(): # Detect older config format which doesn't include a version at the top. WARNING: This will run into issues if the player set their usename to only numbers. Oh, bother...
         print("Unversioned config detected")
         options.insert(0, "0")
+    if options[0] <= 1:
+         print("Version 1 config detected, migrating...")
+         options.append("unknown")
     f.close()
 except:
     print("Error opening options.txt")
 
 # Load options & servers
+defaults = [CONFIG_VERSION, "Steve", "", True, "unknown"]
 try:
     name.set(options[1])
 except:
-    name.set("Steve")
+    name.set(defaults[1])
     print("Cannot get name")
 try:
-    verified_url.set(options[2])
+    custom_url.set(options[2])
 except:
-    verified_url.set("https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip")
+    custom_url.set(defaults[2])
     print("Cannot get URL")
 try:
     fullscreen.set(options[3] == "True")
 except:
-    fullscreen.set(True)
+    fullscreen.set(defaults[3])
     print("Cannot get fullscreen")
+try:
+    download_source = options[4]
+except:
+    download_source = defaults[4]
+    print("Cannot get download source")
 
 # Try to read UID
 try:
@@ -282,7 +335,7 @@ def save_config(*args):
     os.makedirs("LegacyLauncher/Minecraft_LCE", exist_ok=True)
 
     with open("LegacyLauncher/options.txt", "w") as f:
-        f.write(f"{CONFIG_VERSION}\n{name.get()}\n{verified_url.get()}\n{fullscreen.get()}")
+        f.write(f"{CONFIG_VERSION}\n{name.get()}\n{custom_url.get()}\n{fullscreen.get()}\n{download_source}")
     with open("LegacyLauncher/Minecraft_LCE/options.txt", "w") as f:
         data = ""
         if fullscreen.get():
@@ -293,14 +346,14 @@ def save_config(*args):
 
 # Make save_config run whenever text inputs are changed
 name.trace_add("write", save_config)
-verified_url.trace_add("write", save_config)
+custom_url.trace_add("write", save_config)
 fullscreen.trace_add("write", save_config)
 
 save_config()
 
 # Open popup to update LCE
 def update():
-    download_popup("Where should Minecraft LCE be downloaded from?\nChoose one of the options below:")
+    download_popup()
 
 # Button to open update popup
 update_button = Button(footer, text="Update LCE", command=update)
