@@ -43,32 +43,17 @@ progress_str = StringVar()
 download_source = StringVar()
 
 
-def perform_download(url, stop_flag, error_flag, progressbar) -> int:
+def perform_download(url, stop_flag, progressbar):
     """
     Purpose: Performs the game download. Intended to be run in a thread.
     Preconditions:
         url: string, URL to download game from
         stop_flag: A reference to a dictionary formatted as {"stop": False}. If it is set to True, the download will quit early.
-        error_flag: A reference to a dict formatted as {"error": <int>}. Used to return errors to main thread.
         progressbar: Reference to a UI window where the progress bar is shown.
     Postconditons:  
         LCE will be downloaded into LegacyLauncher/Minecraft_LCE. If is_update is True, we are only downloading the Minecraft.Client.exe
         No ZIP file should be leftover
-        error_flag["error"] will be modified. -1 if download failed, 0 if unzip failed, 1 if successful.
     """
-
-    def reset_ui():
-        """
-        Purpose: Delete the progressbar window & reset UI variables
-        """
-        # Reset UI
-        progress_str.set("")
-        progress.set(0)
-        # Delete progressbar window
-        if not stop_flag["stop"]:
-            progressbar.after(0, progressbar.destroy)
-
-
     download_path = "LegacyLauncher/temp_download.zip"
     
     print("Download started...")
@@ -99,8 +84,7 @@ def perform_download(url, stop_flag, error_flag, progressbar) -> int:
                         progress.set((i+1) / num_chunks * 100)
                         progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
     except:
-        error_flag["error"] = -1
-        reset_ui()
+        progress_str.set("Error! Couldn't download file.")
         return
     
     # If download wasn't cancelled, start unzipping
@@ -111,8 +95,7 @@ def perform_download(url, stop_flag, error_flag, progressbar) -> int:
             with zipfile.ZipFile(download_path, "r") as zip_ref:
                 zip_ref.extractall(minecraft_path)
     except:
-        error_flag["error"] = 0
-        reset_ui()
+        progress_str.set("Error! Couldn't uncompress file.")
         return
     
     # Delete the zip file
@@ -121,9 +104,9 @@ def perform_download(url, stop_flag, error_flag, progressbar) -> int:
     os.remove(download_path)
     print(f"Downloaded & extracted LCE into {minecraft_path}")
     
-    error_flag["error"] = 1
-    reset_ui()
-    return
+    # Delete progressbar window
+    if not stop_flag["stop"]:
+        progressbar.after(0, progressbar.destroy)
 
 
 def download_game(url):
@@ -138,7 +121,7 @@ def download_game(url):
     # Create window for progress bar
     root = Toplevel()
     root.title = ("Download Progress")
-    root.geometry(get_geometry_centred(280, 70))
+    root.geometry(get_geometry_centred(280, 108))
     root.resizable(False, False)
     
     # Makes the window the "focus", don't let user interact with main window while downloading
@@ -148,21 +131,27 @@ def download_game(url):
     counter = Label(root, textvariable=progress_str)
     counter.pack(padx=10, pady=10)
 
+    # Progress bar
     bar = ttk.Progressbar(root, variable=progress, maximum=100)
     bar.pack(padx=10, pady=(0, 10), fill="x")
     
-    stop_flag = {"stop": False} # mutable so that thread will detect change
-    
     # If user closes the progress window, signal the download thread to stop
     def on_close():
+        progress_str.set("")
+        progress.set(0)
         stop_flag["stop"] = True
         root.destroy()
+
+    # Cancel button
+    cancel_button = Button(root, text="Cancel", command=on_close)
+    cancel_button.pack()
+    
+    stop_flag = {"stop": False} # mutable so that thread will detect change
 
     root.protocol("WM_DELETE_WINDOW", on_close)
     
     # Start download thread
-    error_flag = {"error": -2}
-    flag = Thread(target=lambda: perform_download(url, stop_flag, error_flag, root), daemon=True).start()
+    Thread(target=lambda: perform_download(url, stop_flag, root), daemon=True).start()
     
 
 def get_geometry_centred(w, h):
@@ -237,7 +226,7 @@ def download_popup():
     # Create the window
     root = Toplevel()
     root.title = ("Download Required")
-    root.geometry(get_geometry_centred(330, 280))
+    root.geometry(get_geometry_centred(330, 200))
     root.resizable(False, False)
     
     # Make window the focused window, so you can't interact with main window until closing it
@@ -284,6 +273,8 @@ def download_popup():
     url_ent = Entry(root, textvariable=custom_url, width=44, state="disabled")
     url_ent.pack()
 
+    update_state()
+
     buttons = Frame(root)
     buttons.pack(pady=10)
 
@@ -305,6 +296,8 @@ def download_popup():
 if not os.path.exists("LegacyLauncher/Minecraft_LCE/Minecraft.Client.exe"):
     download_popup()
 
+defaults = [CONFIG_VERSION, "Steve", "", True, "archive"]
+
 # Read options file
 try:
     f = open("LegacyLauncher/options.txt", "r")
@@ -312,15 +305,14 @@ try:
     if not options[0].isdigit(): # Detect older config format which doesn't include a version at the top. WARNING: This will run into issues if the player set their usename to only numbers. Oh, bother...
         print("Unversioned config detected")
         options.insert(0, "0")
-    if options[0] <= 1:
+    if int(options[0]) <= 1:
          print("Version 1 config detected, migrating...")
-         options.append("unknown")
+         options.append(defaults[4])
     f.close()
 except:
     print("Error opening options.txt")
 
 # Load options & servers
-defaults = [CONFIG_VERSION, "Steve", "", True, "unknown"]
 try:
     name.set(options[1])
 except:
