@@ -1,0 +1,71 @@
+import requests
+import zipfile
+import os
+
+
+def perform_download(url, stop_flag, progressbar, progress_str, progress):
+    """
+    Purpose: Performs the game download. Intended to be run in a thread.
+    Preconditions:
+        url: string, URL to download game from
+        stop_flag: A reference to a dictionary formatted as {"stop": False}. If it is set to True, the download will quit early.
+        progressbar: Reference to a UI window where the progress bar is shown.
+        progress_str: Reference to a Tk StringVar where progress message is stored
+        progress: Reference to a Tk IntVar where progress is stored
+    Postconditons:  
+        LCE will be downloaded into LegacyLauncher/Minecraft_LCE. If is_update is True, we are only downloading the Minecraft.Client.exe
+        No ZIP file should be leftover
+    """
+    download_path = "LegacyLauncher/temp_download.zip" # Temporary path for zip file
+    
+    print("Download started...")
+    
+    # Download the file
+    try:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status() # Raise error if download fails
+            total_size = int(r.headers.get("Content-Length", 0)) # Get size of file
+            chunk_size = 1024 # 1KB chunks
+            num_chunks = total_size // chunk_size  + 1
+            
+            # Create needed paths
+            minecraft_path = "LegacyLauncher/Minecraft_LCE"
+            os.makedirs(minecraft_path, exist_ok=True)
+            
+            # Download file, chunk-by-chunk
+            with open(download_path, "wb") as f:
+                for i, chunk in enumerate(r.iter_content(chunk_size=chunk_size)):
+                    # if the user closes the download window, stop
+                    if stop_flag["stop"]:
+                        print("Download cancelled")
+                        break
+                    # If chunk is valid, save it
+                    if chunk:
+                        f.write(chunk)
+                        # Update UI
+                        progress.set((i+1) / num_chunks * 100)
+                        progress_str.set(f"{(i+1) // 1000}/{num_chunks // 1000} MB downloaded")
+    except:
+        progress_str.set("Download failed O_o")
+        return
+    
+    # If download wasn't cancelled, start unzipping
+    try:
+        if not stop_flag["stop"]:
+            progress_str.set(f"Uncompressing...")
+            print("Unzipping...")
+            with zipfile.ZipFile(download_path, "r") as zip_ref:
+                zip_ref.extractall(minecraft_path)
+    except:
+        progress_str.set("Uncompressing failed ;(")
+        return
+    
+    # Delete the zip file
+    progress_str.set("Cleaning up...")
+    print("Cleaning up (removing zip file)...")
+    os.remove(download_path)
+    print(f"Downloaded & extracted LCE into {minecraft_path}")
+    
+    # Delete progressbar window
+    if not stop_flag["stop"]:
+        progressbar.after(0, progressbar.destroy)
