@@ -5,11 +5,13 @@ from tkinter import ttk
 import os
 import sys
 import subprocess
+import requests
 from threading import Thread
 
 import downloader as dl
 
 CONFIG_VERSION = 2
+RELEASE_TAG = "v1.3"
 
 DOWNLOAD_SOURCES = {
     "archive": "https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip",
@@ -19,6 +21,20 @@ DOWNLOAD_SOURCES = {
 
 
 window = Tk()
+
+
+def check_for_launcher_update() -> bool:
+    """
+    Purpose: Check if there is a new launcher update available
+    Returns: bool, True if there is an update, False otherwise
+    """
+    url = "https://api.github.com/repos/hw2007/LegacyLauncher/releases/latest"
+    response = requests.get(url)
+    data = response.json()
+
+    latest_tag = data["tag_name"]
+
+    return latest_tag != RELEASE_TAG
 
 
 def resource_path(path):
