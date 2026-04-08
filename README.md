@@ -39,7 +39,7 @@ Note: While you can technically create native builds for linux & macOS, this is 
 # Setup
 After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. The nightly build is not guarenteed to be stable, as it is essentially a WIP version that gets updated each day. If you are playing on someone's server, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
 
-The latest nightly build & my verified archives are sourced from <a href=https://github.com/smartcmd/MinecraftConsoles>smartcmd/MinecraftConsoles</a>.
+The latest nightly build & my verified archives are sourced from <a href=https://github.com/MCLCE/MinecraftConsoles>MCLCE/MinecraftConsoles</a>.
 
 # Updating LegacyLauncher
 To update an existing install of legacy launcher, simply... 
