@@ -15,7 +15,7 @@ RELEASE_TAG = "v1.3"
 
 DOWNLOAD_SOURCES = {
     "archive": "https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip",
-    "nightly": "https://github.com/smartcmd/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip",
+    "nightly": "https://github.com/MCLCE/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip",
     "custom": "" # Will be loaded later
 }
 
