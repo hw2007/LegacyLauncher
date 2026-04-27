@@ -312,6 +312,7 @@ def load_config():
     """
     # ver, name, custom URL, fullscreen?, download source
     defaults = [CONFIG_VERSION, "Steve", "", True, "archive"]
+    options = []
     # Read options file
     try:
         f = open("LegacyLauncher/options.txt", "r")
