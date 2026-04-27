@@ -15,8 +15,9 @@ RELEASE_TAG = "v1.3"
 
 DOWNLOAD_SOURCES = {
     "archive": "https://github.com/hw2007/LCE-Verified-Archive/releases/download/Latest/LCEWindows64.zip",
-    "nightly": "https://github.com/MCLCE/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip",
-    "custom": "" # Will be loaded later
+    "nightly-revelations": "https://github.com/itsRevela/LCE-Revelations/releases/download/Nightly/LCE-Revelations-Client-Win64.zip",
+    "nightly-mclce": "https://github.com/MCLCE/MinecraftConsoles/releases/download/nightly/LCEWindows64.zip",
+    "custom": "" # Will be set when config is loaded
 }
 
 
@@ -124,7 +125,7 @@ def download_popup():
     # Create the window
     root = Toplevel()
     root.title = ("Download Required")
-    root.geometry(get_geometry_centred(330, 200))
+    root.geometry(get_geometry_centred(330, 222))
     root.resizable(False, False)
     
     # Make window the focused window, so you can't interact with main window until closing it
@@ -153,11 +154,15 @@ def download_popup():
     radios.pack(pady=(0,10))
 
     # Button for verified archive
-    verified_button = Radiobutton(radios, text="Verified Archive", variable=download_source, value="archive", command=update_state)
+    verified_button = Radiobutton(radios, text="Verified Archive (very stable)", variable=download_source, value="archive", command=update_state)
     verified_button.pack(anchor='w')
+
+    # Button for nighly build
+    nightly_button = Radiobutton(radios, text="Nightly Build - LCE Revelations (stable)", variable=download_source, value="nightly-revelations", command=update_state)
+    nightly_button.pack(anchor='w')
     
     # Button for nighly build
-    nightly_button = Radiobutton(radios, text="Nightly Build", variable=download_source, value="nightly", command=update_state)
+    nightly_button = Radiobutton(radios, text="Nightly Build - MCLCE (bleeding edge)", variable=download_source, value="nightly-mclce", command=update_state)
     nightly_button.pack(anchor='w')
 
     # Button for custom source
@@ -253,24 +258,21 @@ frame.pack(expand=True)
 
 # Defining tk variables
 
-name = StringVar()
-custom_url = StringVar()
-fullscreen = BooleanVar()
-uid = StringVar()
-progress = DoubleVar()
-progress_str = StringVar()
-download_source = StringVar()
+name = StringVar()              # username
+fullscreen = BooleanVar()       # launch in fullscreen?
+uid = StringVar()               # player's unique id
+progress = DoubleVar()          # progress of download, as percentage
+progress_str = StringVar()      # progress of download, as string (example: "50/100MB downloaded")
+download_source = StringVar()   # where to download from, must be some element of DOWNLOAD_SOURCES
+custom_url = StringVar()        # url for custom download option
 
 # Username input
-
 name_lb = Label(frame, text="Player Name (can be anything):")
 name_lb.pack(pady=(10,0))
-
 name_ent = Entry(frame, textvariable=name)
 name_ent.pack(pady=0)
 
 # Fullscreen toggle
-
 full_check = Checkbutton(frame, text="Launch in Fullscreen", variable=fullscreen)
 full_check.pack(pady=10)
 
@@ -289,16 +291,14 @@ update_button.grid(row=0, column=1, padx=5)
 # UID indicator
 uid_frame = Frame(window)
 uid_frame.pack()
-
 uid_label = Label(uid_frame, text="UID:", fg="gray")
 uid_label.grid(row=0, column=0, pady=0)
-
 uid_val = Label(uid_frame, textvariable=uid, fg="gray")
 uid_val.grid(row=0, column=1)
-
+# Edit UID
 uid_edit = Button(uid_frame, text="edit", borderwidth=0, padx=0, pady=4, command=edit_uid_window)
 uid_edit.grid(row=0, column=2)
-
+# Copy UID to clipboard
 uid_copy = Button(uid_frame, text="copy", borderwidth=0, padx=0, pady=4, command=copy_uid)
 uid_copy.grid(row=0, column=3)
 
