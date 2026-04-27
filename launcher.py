@@ -24,6 +24,8 @@ DOWNLOAD_SOURCES = {
 window = Tk()
 
 
+# AUTO UPDATE IS A WORK IN PROGRESS
+# THIS FUNCTION IS CURRENTLY UNUSED
 def check_for_launcher_update() -> bool:
     """
     Purpose: Check if there is a new launcher update available
@@ -37,7 +39,7 @@ def check_for_launcher_update() -> bool:
 
     return latest_tag != RELEASE_TAG
 
-
+#print(check_for_launcher_update())
 def resource_path(path):
     """
     Purpose: Return the path of a resource, no matter if running from source or from build
