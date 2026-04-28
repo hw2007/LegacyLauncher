@@ -52,47 +52,55 @@ def perform_download(url, stop_flag, progressbar, progress_str, progress):
         return
     
     # If download wasn't cancelled, start unzipping
-    try:
-        if not stop_flag["stop"]:
-            progress_str.set("Uncompressing...")
-        print("Unzipping...")
+   # try:
+    if not stop_flag["stop"]:
+        progress_str.set("Uncompressing...")
+    print("Unzipping...")
 
-        with zipfile.ZipFile(download_path, "r") as zip_ref:
-            names = zip_ref.namelist()
+    with zipfile.ZipFile(download_path, "r") as zip_ref:
+        names = zip_ref.namelist()
 
-            # Get top-level entries in the zip
-            top_levels = set()
-            for name in names:
-                clean = name.strip("/")
+        # Get top-level entries in the zip
+        top_levels = set()
+        for name in names:
+            clean = name.strip("/")
 
-                if not clean:
-                    continue
+            if not clean:
+                continue
 
-                top = clean.split("/")[0]
-                top_levels.add(top)
+            top = clean.split("/")[0]
+            top_levels.add(top)
 
-            # Case: exactly one top-level folder
-            if len(top_levels) == 1:
-                print("Note: zip file contains a top-level folder")
-                top_folder = list(top_levels)[0]
+        # Case: exactly one top-level folder
+        if len(top_levels) == 1:
+            print("Note: zip file contains a top-level folder")
+            top_folder = list(top_levels)[0]
 
-                # Extract to temp dir first
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    zip_ref.extractall(tmpdir)
+            # Extract to temp dir first
+            with tempfile.TemporaryDirectory() as tmpdir:
+                zip_ref.extractall(tmpdir)
 
-                    wrapper_dir = os.path.join(tmpdir, top_folder)
+                wrapper_dir = os.path.join(tmpdir, top_folder)
 
-                    # Move contents up into minecraft_path
-                    for item in os.listdir(wrapper_dir):
-                        src = os.path.join(wrapper_dir, item)
-                        dst = os.path.join(minecraft_path, item)
-                        shutil.move(src, dst)
-            else:
-                # Normal extraction
-                zip_ref.extractall(minecraft_path)
-    except:
-        progress_str.set("Uncompressing failed ;(")
-        return
+                # Move contents up into minecraft_path
+                for item in os.listdir(wrapper_dir):
+                    src = os.path.join(wrapper_dir, item)
+                    dst = os.path.join(minecraft_path, item)
+
+                    # Overwrite if exists
+                    if os.path.exists(dst):
+                        if os.path.isdir(dst):
+                            shutil.rmtree(dst)
+                        else:
+                            os.remove(dst)
+
+                    shutil.move(src, dst)
+        else:
+            # Normal extraction
+            zip_ref.extractall(minecraft_path)
+    #except:
+    #    progress_str.set("Uncompressing failed ;(")
+    #    return
     
     # Delete the zip file
     progress_str.set("Cleaning up...")
