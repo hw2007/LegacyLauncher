@@ -37,13 +37,15 @@ Note: LegacyLauncher is not regularily tested on macOS. Please write a report if
 Note: While you can technically create native builds for linux & macOS, this is not officially supported and you will not be able to simply run LCE that way since there are only windows builds available.
 
 # Setup
-After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or the latest nightly build. The verified archive is a version handpicked by me that I know works. The nightly build is not guarenteed to be stable, as it is essentially a WIP version that gets updated each day. If you are playing on someone's server, they may have a different handpicked version for you to use. In this case, replace the URL at the bottom of the window with the one they gave you, and download the latest verified archive.
+After installing & running, you will be prompted to download Minecraft LCE. You will have the option to use the latest verified archive, or one of two different nightly builds. The verified archive is guarenteed to be functional, and exists so that it is easier for server owners to ensure clients are connecting from the same build.
 
-The latest nightly build & my verified archives are sourced from <a href=https://github.com/MCLCE/MinecraftConsoles>MCLCE/MinecraftConsoles</a>.
+### Link to repos used for nightly builds:
+
+<a href=https://github.com/itsRevela/LCE-Revelations>itsRevela/LCE-Revelations</a> (this is where my verified archives come from as well)
+
+<a href=https://github.com/MCLCE/MinecraftConsoles>MCLCE/MinecraftConsoles</a>
 
 # Updating LegacyLauncher
 To update an existing install of legacy launcher, simply... 
 1. Go to the <a href=https://github.com/hw2007/LegacyLauncher/releases/latest>latest release</a>
-2. Download LegacyLauncher.zip
-3. Unzip the file
-4. Replace the old LegacyLauncher.exe with the new one from the unzipped file.
+2. Follow the instructions on the release page
