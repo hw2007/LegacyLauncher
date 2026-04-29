@@ -39,7 +39,7 @@ def check_for_launcher_update() -> bool:
 
     return latest_tag != RELEASE_TAG
 
-#print(check_for_launcher_update())
+
 def resource_path(path):
     """
     Purpose: Return the path of a resource, no matter if running from source or from build
